@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+<style>
+    #province, #minBeds, #nameHosp {
+        width: 150px;
+        height: 25px;
+        font-size: 0.85em;
+        margin-top: 50px;
+    }
+    #searchWrapper > label { margin-left: 50px }
+    #searchWrapper > button {
+        width: 70px;
+        height: 25px;
+        text-align: center;
+        margin-left: 20px;
+    }
+    #infoWrapper {
+        width: 700px;
+        margin-top: 25px;
+        margin-left: 35px;
+    }
+    .allInfo{
+        width: 600px;
+        height: 700px;
+        padding: 10px;
+    }
+    #eachNum { margin: 5px 0px 0px 40px; }
+    .cateSpn { margin-left: 10px; }
+    .infoSpn { margin-left: 10px; }
+    .eachInfo {
+        width: 600px;
+        height: 30px;
+        outline: 1px solid black;
+        line-height: 30px;
+        margin-top: 8px;
+        margin-left: 40px;
+    }
+    mark {
+        background-color : grey;
+    }
+</style>
+</head>
+<body>
+    <div id="searchWrapper">
+        <label for="province">Province : </label>
+        <input type="text" name="province" id="province">
+
+        <label for="minBeds">Minimum of Beds : </label>
+        <input type="text" name="minBeds" id="minBeds">
+
+        <label for="nameHosp">Name of Hospital : </label>
+        <input type="text" name="nameHosp" id="nameHosp">
+        
+        <button type="button" id="send" name="send" value="">Click!</button>
+    </div>
+    <div class="infoWrapper" id="infoWrapper">
+  
+    </div>
+    <script>
+        // "name":강원도 영월의료원,
+        // "address":강원도 영월군 영월읍 중앙1로 59,
+        //"zip":26234,
+        //"website":http://www.youngwol.org,
+        //"phone":033-370-9117,
+        //"department":보건복지부(강원도),
+        //"numBeds":214
+        document.getElementById("send").addEventListener("click", function() {
+            var xhttp = new XMLHttpRequest()
+            xhttp.onreadystatechange = function() {
+                if(xhttp.readyState === 4 && xhttp.status === 200) {
+                    var inObj = JSON.parse(xhttp.responseText);
+                    
+                    inObj.sort(function(first,second) { // numBeds 많은 순서대로 나오게 하기 위해서
+                        return second.numBeds - first.numBeds;
+                        // Another way
+                        // if(first.numBeds > second.numBeds) return -1;
+                        // if(first.numBeds < second.numBeds) return 1;
+                        // else return 0
+                    })
+                    var infoSection = document.getElementById("infoWrapper")
+                    infoSection.innerHTML ="";
+                    document.getElementById("infoWrapper").style.outline = "1px solid black"
+                    for (var i=0; i < inObj.length; i++) {
+                        infoSection.innerHTML += "<div id=\"info" + (i+1) +"\" class=\"allInfo\" style='width:800px; height:100%'>" 
+                                                    +"<h2 id=\"eachNum\">" + (i+1) + "."+ "</h2>"
+                                                    +"<div class=\"eachInfo\">" 
+                                                            + "<span class=\"cateSpn\">" + "Name : " + "</span>" 
+                                                            + "<span class=\"infoSpn\">" + "<mark>" + inObj[i].name + "</mark>" + "</span>"
+                                                    +"</div>"
+                                                    +"<div class=\"eachInfo\">" 
+                                                            + "<span class=\"cateSpn\">" + "Address : " + "</span>" 
+                                                            + "<span class=\"infoSpn\">" + inObj[i].address + "</span>"
+                                                    +"</div>"
+                                                    +"<div class=\"eachInfo\">" 
+                                                            + "<span class=\"cateSpn\">" + "Zipcode : " + "</span>" 
+                                                            + "<span class=\"infoSpn\">" + inObj[i].zip + "</span>"
+                                                    +"</div>"
+                                                    +"<div class=\"eachInfo\">" 
+                                                            + "<span class=\"cateSpn\">" + "Website : " + "</span>" 
+                                                            + "<span class=\"infoSpn\">" + inObj[i].website + "</span>"
+                                                    +"</div>"
+                                                    +"<div class=\"eachInfo\">" 
+                                                            + "<span class=\"cateSpn\">" + "Phone# : " + "</span>" 
+                                                            + "<span class=\"infoSpn\">" + inObj[i].phone + "</span>"
+                                                    +"</div>"
+                                                    +"<div class=\"eachInfo\">" 
+                                                            + "<span class=\"cateSpn\">" + "Department : " + "</span>" 
+                                                            + "<span class=\"infoSpn\">" + inObj[i].department + "</span>"
+                                                    +"</div>"
+                                                    +"<div class=\"eachInfo\">" 
+                                                            + "<span class=\"cateSpn\">" + "Number of Beds : " + "</span>"
+                                                            + "<span class=\"infoSpn\">" + inObj[i].numBeds + "</span>"
+                                                    +"</div>"
+                                                +"</div>"
+                    }
+                }
+            }
+                        
+            // xhttp.open("POST", "http://192.168.1.105/intensive3/publichealth.php");
+            xhttp.open("POST", "publichealth.php");
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            var provinceValue = document.getElementById("province").value;
+            var minBedsValue = parseInt(document.getElementById("minBeds").value); // 숫자도 string으로 되서 string으로 Backend에 보내기 때문에 바꿔야 함.
+            var nameValue = document.getElementById("nameHosp").value;
+
+            // 직접 string으로 JSON form을 적용해서 다 쓰는 법.
+            // var myObj = "{\"province\":\"" + provinceValue + "\", \"minBeds\":" + minBedsValue + "} ";
+
+            // 이건 JSON으로 만들어서 보내는법.
+            /* 1번 기본으로 하는 법 , 하지만 flexible 하진 않다. 매번 만들기 때문에 minBeds가 없거나, 
+                 name 이 없을 때 문제가 생겨서 앞에 조건을 만들어줘야함
+            */
+            // var myObj = {
+            //     province: provinceValue
+            //     , minBeds: minBedsValue
+            //     , name: nameValue
+            // }
+
+            /* 2번
+              1번에 비해서는 더 flexible 하다. */   
+            // var myObj = {};
+            // myObj.province = provinceValue;
+            // myObj.minBeds = minBedsValue;
+            // myObj.name = nameValue ;
+
+
+            /*3번
+            var myObj = { province: provinceValue }
+            if(minBedsValue === "") { myObj.minBeds === 0 }
+            else { myObj.minBeds = minBedsValue; }
+            myObj.name = nameValue ; 
+            name 관련 조건은 뒤에 Backend에서 이미 만들었음.
+            */
+
+            //4번 Alex Way!! 
+            var myObj = { province: provinceValue }
+            if(minBedsValue !== "") { myObj.minBeds = parseInt(minBedsValue); }
+            if(nameValue !== "") { myObj.name = nameValue; }
+
+            xhttp.send(JSON.stringify(myObj));
+        });
+    </script>
+</body>
+</html>
